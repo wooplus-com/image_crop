@@ -16,9 +16,14 @@ enum _CropHandleSide { none, topLeft, topRight, bottomLeft, bottomRight }
 class Crop extends StatefulWidget {
   final ImageProvider image;
   final double? aspectRatio;
+
   final double maximumScale;
   final bool alwaysShowGrid;
   final ImageErrorListener? onImageError;
+  final bool showGrid;
+  final bool enableAdjustCropWindow;
+  final Rect Function(Rect area, Size size)? onCalculateDefaultArea;
+  final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPrint;
 
   const Crop({
     Key? key,
@@ -27,6 +32,10 @@ class Crop extends StatefulWidget {
     this.maximumScale = 2.0,
     this.alwaysShowGrid = false,
     this.onImageError,
+    this.showGrid = true,
+    this.enableAdjustCropWindow = true,
+    this.onCalculateDefaultArea,
+    this.onAfterPrint,
   }) : super(key: key);
 
   Crop.file(
@@ -37,6 +46,10 @@ class Crop extends StatefulWidget {
     this.maximumScale = 2.0,
     this.alwaysShowGrid = false,
     this.onImageError,
+    this.showGrid = true,
+    this.enableAdjustCropWindow = true,
+    this.onCalculateDefaultArea,
+    this.onAfterPrint,
   })  : image = FileImage(file, scale: scale),
         super(key: key);
 
@@ -49,6 +62,10 @@ class Crop extends StatefulWidget {
     this.maximumScale = 2.0,
     this.alwaysShowGrid = false,
     this.onImageError,
+    this.showGrid = true,
+    this.enableAdjustCropWindow = true,
+    this.onCalculateDefaultArea,
+    this.onAfterPrint,
   })  : image = AssetImage(assetName, bundle: bundle, package: package),
         super(key: key);
 
@@ -63,6 +80,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   final _surfaceKey = GlobalKey();
 
   late final AnimationController _activeController;
+
   late final AnimationController _settleController;
 
   double _scale = 1.0;
@@ -74,12 +92,17 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   _CropHandleSide _handle = _CropHandleSide.none;
 
   late double _startScale;
+
   late Rect _startView;
+
   late Tween<Rect?> _viewTween;
+
   late Tween<double> _scaleTween;
 
   ImageStream? _imageStream;
+
   ui.Image? _image;
+
   ImageStreamListener? _imageListener;
 
   double get scale => _area.shortestSide / _scale;
@@ -192,6 +215,8 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
                 area: _area,
                 scale: _scale,
                 active: _activeController.value,
+                showHandles: widget.enableAdjustCropWindow,
+                onAfterPrint: widget.onAfterPrint,
               ),
             ),
           ),
@@ -291,7 +316,11 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       _maxAreaWidthMap[aspectRatio] = width;
     }
 
-    return Rect.fromLTWH((1.0 - width) / 2, (1.0 - height) / 2, width, height);
+    var result = Rect.fromLTWH((1.0 - width) / 2, (1.0 - height) / 2, width, height);
+    if(widget.onCalculateDefaultArea != null) {
+      result = widget.onCalculateDefaultArea!(result, Size(imageWidth * viewWidth, imageHeight * viewHeight));
+    }
+    return result;
   }
 
   void _updateImage(ImageInfo imageInfo, bool synchronousCall) {
@@ -384,7 +413,9 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   }
 
   void _handleScaleStart(ScaleStartDetails details) {
-    _activate();
+    if (widget.showGrid) {
+      _activate();
+    }
     _settleController.stop(canceled: false);
     _lastFocalPoint = details.focalPoint;
     _action = _CropAction.none;
@@ -552,7 +583,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
 
     if (_action == _CropAction.cropping) {
       final boundaries = _boundaries;
-      if (boundaries == null) {
+      if (boundaries == null || widget.enableAdjustCropWindow == false) {
         return;
       }
 
@@ -619,11 +650,15 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
 
 class _CropPainter extends CustomPainter {
   final ui.Image? image;
+
   final Rect view;
   final double ratio;
   final Rect area;
   final double scale;
   final double active;
+  final bool showHandles;
+
+  final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPrint;
 
   _CropPainter({
     required this.image,
@@ -632,6 +667,8 @@ class _CropPainter extends CustomPainter {
     required this.area,
     required this.scale,
     required this.active,
+    this.showHandles = true,
+    this.onAfterPrint,
   });
 
   @override
@@ -646,12 +683,7 @@ class _CropPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = Rect.fromLTWH(
-      _kCropHandleSize / 2,
-      _kCropHandleSize / 2,
-      size.width - _kCropHandleSize,
-      size.height - _kCropHandleSize,
-    );
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
 
     canvas.save();
     canvas.translate(rect.left, rect.top);
@@ -679,18 +711,19 @@ class _CropPainter extends CustomPainter {
       canvas.restore();
     }
 
-    paint.color = Color.fromRGBO(
-        0x0,
-        0x0,
-        0x0,
-        _kCropOverlayActiveOpacity * active +
-            _kCropOverlayInactiveOpacity * (1.0 - active));
     final boundaries = Rect.fromLTWH(
       rect.width * area.left,
       rect.height * area.top,
       rect.width * area.width,
       rect.height * area.height,
     );
+
+    paint.color = Color.fromRGBO(
+        0x0,
+        0x0,
+        0x0,
+        _kCropOverlayActiveOpacity * active +
+            _kCropOverlayInactiveOpacity * (1.0 - active));
     canvas.drawRect(Rect.fromLTRB(0.0, 0.0, rect.width, boundaries.top), paint);
     canvas.drawRect(
         Rect.fromLTRB(0.0, boundaries.bottom, rect.width, rect.height), paint);
@@ -704,9 +737,14 @@ class _CropPainter extends CustomPainter {
 
     if (boundaries.isEmpty == false) {
       _drawGrid(canvas, boundaries);
-      _drawHandles(canvas, boundaries);
+      if (this.showHandles) {
+        _drawHandles(canvas, boundaries);
+      }
     }
 
+    if (onAfterPrint != null) {
+      onAfterPrint!(canvas, paint, boundaries);
+    }
     canvas.restore();
   }
 
