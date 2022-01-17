@@ -10,7 +10,7 @@ const _kCropHandleSize = 10.0;
 const _kCropHandleHitSize = 48.0;
 const _kCropMinFraction = 0.1;
 
-enum _CropAction { none, moving, cropping, scaling }
+enum CropAction { none, moving, cropping, scaling }
 enum _CropHandleSide { none, topLeft, topRight, bottomLeft, bottomRight }
 
 class Crop extends StatefulWidget {
@@ -24,7 +24,7 @@ class Crop extends StatefulWidget {
   final bool enableAdjustCropWindow;
   final Rect Function(Rect area, Size size)? onCalculateDefaultArea;
   final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPaint;
-  final Function(bool animating)? settleStatusListener;
+  final Function(CropAction action)? actionListener;
 
   const Crop({
     Key? key,
@@ -37,7 +37,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
-    this.settleStatusListener,
+    this.actionListener,
   }) : super(key: key);
 
   Crop.file(
@@ -52,7 +52,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
-    this.settleStatusListener,
+    this.actionListener,
   })  : image = FileImage(file, scale: scale),
         super(key: key);
 
@@ -69,7 +69,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
-    this.settleStatusListener,
+    this.actionListener,
   })  : image = AssetImage(assetName, bundle: bundle, package: package),
         super(key: key);
 
@@ -92,7 +92,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   Rect _view = Rect.zero;
   Rect _area = Rect.zero;
   Offset _lastFocalPoint = Offset.zero;
-  _CropAction _action = _CropAction.none;
+  CropAction _action = CropAction.none;
   _CropHandleSide _handle = _CropHandleSide.none;
 
   late double _startScale;
@@ -128,6 +128,14 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   // Counting pointers(number of user fingers on screen)
   int pointers = 0;
 
+  CropAction get action => _action;
+  set action (CropAction value) {
+    _action = value;
+    if(widget.actionListener != null){
+      widget.actionListener!(_action);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -138,13 +146,6 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
     )..addListener(() => setState(() {}));
     _settleController = AnimationController(vsync: this)
       ..addListener(_settleAnimationChanged);
-
-    if (widget.settleStatusListener != null) {
-      widget.settleStatusListener!(false);
-      _settleController.addStatusListener((status) {
-        widget.settleStatusListener!(status != AnimationStatus.dismissed && status != AnimationStatus.completed);
-      });
-    }
   }
 
   @override
@@ -431,7 +432,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
     }
     _settleController.stop(canceled: false);
     _lastFocalPoint = details.focalPoint;
-    _action = _CropAction.none;
+    action = CropAction.none;
     _handle = _hitCropHandle(_getLocalPoint(details.focalPoint));
     _startScale = _scale;
     _startView = _view;
@@ -586,15 +587,15 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   }
 
   void _handleScaleUpdate(ScaleUpdateDetails details) {
-    if (_action == _CropAction.none) {
+    if (action == CropAction.none) {
       if (_handle == _CropHandleSide.none) {
-        _action = pointers == 2 ? _CropAction.scaling : _CropAction.moving;
+        action = pointers == 2 ? CropAction.scaling : CropAction.moving;
       } else {
-        _action = _CropAction.cropping;
+        action = CropAction.cropping;
       }
     }
 
-    if (_action == _CropAction.cropping) {
+    if (action == CropAction.cropping) {
       final boundaries = _boundaries;
       if (boundaries == null || widget.enableAdjustCropWindow == false) {
         return;
@@ -618,7 +619,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
         _updateArea(
             right: dx, bottom: dy, cropHandleSide: _CropHandleSide.bottomRight);
       }
-    } else if (_action == _CropAction.moving) {
+    } else if (action == CropAction.moving) {
       final image = _image;
       if (image == null) {
         return;
@@ -633,7 +634,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
           delta.dy / (image.height * _scale * _ratio),
         );
       });
-    } else if (_action == _CropAction.scaling) {
+    } else if (action == CropAction.scaling) {
       final image = _image;
       final boundaries = _boundaries;
       if (image == null || boundaries == null) {
