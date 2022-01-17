@@ -145,7 +145,11 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       value: widget.alwaysShowGrid ? 1.0 : 0.0,
     )..addListener(() => setState(() {}));
     _settleController = AnimationController(vsync: this)
-      ..addListener(_settleAnimationChanged);
+      ..addListener(_settleAnimationChanged)..addStatusListener((status) {
+        if(status == AnimationStatus.completed && widget.actionListener != null){
+          widget.actionListener!(CropAction.none);
+        }
+      });
   }
 
   @override
@@ -475,6 +479,9 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
     _deactivate();
     final minimumScale = _minimumScale;
     if (minimumScale == null) {
+      if(widget.actionListener != null){
+        widget.actionListener!(CropAction.none);
+      }
       return;
     }
 

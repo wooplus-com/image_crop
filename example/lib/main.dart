@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:async';
 import 'dart:ui' as ui;
@@ -97,7 +98,10 @@ class _MyAppState extends State<MyApp> {
             showGrid: false,
             enableAdjustCropWindow: false,
             onCalculateDefaultArea: _onCalculateDefaultArea,
-            onAfterPaint: _onAfterPaint,
+            // onAfterPaint: _onAfterPaint,
+            actionListener: (CropAction action){
+              log("CropAction $action");
+            },
           ),
         ),
         Container(
