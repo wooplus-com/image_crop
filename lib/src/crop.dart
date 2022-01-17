@@ -267,8 +267,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
     if (size == null) {
       return null;
     }
-
-    return size - const Offset(_kCropHandleSize, _kCropHandleSize) as Size;
+    return size;
   }
 
   Offset? _getLocalPoint(Offset point) {

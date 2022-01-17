@@ -16,17 +16,13 @@ void main() {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  runApp(new MyApp(
-    decorator: AssetImage('assets/image_photo_person.png'),
-  ));
+  runApp(new MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  final ImageProvider decorator;
 
   const MyApp({
     Key key,
-    this.decorator,
   }) : super(key: key);
 
   @override
@@ -38,10 +34,16 @@ class _MyAppState extends State<MyApp> {
   File _file;
   File _sample;
   File _lastCropped;
+  ImageProvider decorator;
 
   ui.Image _decoratorImage;
   ImageStream _decoratorImageStream;
-  ImageStreamListener _decoratorImageListener;
+
+  @override
+  void initState() {
+    super.initState();
+    decorator = AssetImage('assets/img_photo_person.png');
+  }
 
   @override
   void dispose() {
@@ -94,11 +96,11 @@ class _MyAppState extends State<MyApp> {
           child: Crop.file(
             _sample,
             key: cropKey,
-            aspectRatio: 1.5,
+            aspectRatio: 1,
             showGrid: false,
             enableAdjustCropWindow: false,
             onCalculateDefaultArea: _onCalculateDefaultArea,
-            // onAfterPaint: _onAfterPaint,
+            onAfterPaint: _onAfterPaint,
             actionListener: (CropAction action){
               log("CropAction $action");
             },
@@ -129,7 +131,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   Rect _onCalculateDefaultArea(Rect area, Size size) {
-    var padding = EdgeInsets.all(20);
+    var padding = EdgeInsets.all(15);
     var result = Rect.fromLTWH(
         area.left + padding.left / size.width,
         area.top + padding.top / size.height,
@@ -207,11 +209,11 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _getDecoratorImage() {
-    if (widget.decorator == null) return;
+    if (decorator == null) return;
 
     final oldImageStream = _decoratorImageStream;
     _decoratorImageStream =
-        widget.decorator.resolve(createLocalImageConfiguration(context));
+        decorator.resolve(createLocalImageConfiguration(context));
     if (_decoratorImageStream.key != oldImageStream?.key) {
       oldImageStream
           ?.removeListener(ImageStreamListener(_updateDecoratorImage));
