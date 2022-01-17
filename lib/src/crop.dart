@@ -24,6 +24,7 @@ class Crop extends StatefulWidget {
   final bool enableAdjustCropWindow;
   final Rect Function(Rect area, Size size)? onCalculateDefaultArea;
   final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPaint;
+  final Function(bool active)? activeStatusListener;
 
   const Crop({
     Key? key,
@@ -36,6 +37,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
+    this.activeStatusListener,
   }) : super(key: key);
 
   Crop.file(
@@ -50,6 +52,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
+    this.activeStatusListener,
   })  : image = FileImage(file, scale: scale),
         super(key: key);
 
@@ -66,6 +69,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
+    this.activeStatusListener,
   })  : image = AssetImage(assetName, bundle: bundle, package: package),
         super(key: key);
 
@@ -132,6 +136,12 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       vsync: this,
       value: widget.alwaysShowGrid ? 1.0 : 0.0,
     )..addListener(() => setState(() {}));
+    if (widget.activeStatusListener != null) {
+      widget.activeStatusListener!(false);
+      _activeController.addStatusListener((status) {
+        widget.activeStatusListener!(status != AnimationStatus.dismissed && status != AnimationStatus.completed);
+      });
+    }
     _settleController = AnimationController(vsync: this)
       ..addListener(_settleAnimationChanged);
   }
@@ -316,9 +326,11 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       _maxAreaWidthMap[aspectRatio] = width;
     }
 
-    var result = Rect.fromLTWH((1.0 - width) / 2, (1.0 - height) / 2, width, height);
-    if(widget.onCalculateDefaultArea != null) {
-      result = widget.onCalculateDefaultArea!(result, Size(imageWidth * viewWidth, imageHeight * viewHeight));
+    var result =
+        Rect.fromLTWH((1.0 - width) / 2, (1.0 - height) / 2, width, height);
+    if (widget.onCalculateDefaultArea != null) {
+      result = widget.onCalculateDefaultArea!(
+          result, Size(imageWidth * viewWidth, imageHeight * viewHeight));
     }
     return result;
   }
