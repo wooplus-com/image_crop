@@ -24,7 +24,7 @@ class Crop extends StatefulWidget {
   final bool enableAdjustCropWindow;
   final Rect Function(Rect area, Size size)? onCalculateDefaultArea;
   final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPaint;
-  final Function(bool active)? activeStatusListener;
+  final Function(bool animating)? settleStatusListener;
 
   const Crop({
     Key? key,
@@ -37,7 +37,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
-    this.activeStatusListener,
+    this.settleStatusListener,
   }) : super(key: key);
 
   Crop.file(
@@ -52,7 +52,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
-    this.activeStatusListener,
+    this.settleStatusListener,
   })  : image = FileImage(file, scale: scale),
         super(key: key);
 
@@ -69,7 +69,7 @@ class Crop extends StatefulWidget {
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
     this.onAfterPaint,
-    this.activeStatusListener,
+    this.settleStatusListener,
   })  : image = AssetImage(assetName, bundle: bundle, package: package),
         super(key: key);
 
@@ -136,14 +136,15 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       vsync: this,
       value: widget.alwaysShowGrid ? 1.0 : 0.0,
     )..addListener(() => setState(() {}));
-    if (widget.activeStatusListener != null) {
-      widget.activeStatusListener!(false);
-      _activeController.addStatusListener((status) {
-        widget.activeStatusListener!(status != AnimationStatus.dismissed && status != AnimationStatus.completed);
-      });
-    }
     _settleController = AnimationController(vsync: this)
       ..addListener(_settleAnimationChanged);
+
+    if (widget.settleStatusListener != null) {
+      widget.settleStatusListener!(false);
+      _settleController.addStatusListener((status) {
+        widget.settleStatusListener!(status != AnimationStatus.dismissed && status != AnimationStatus.completed);
+      });
+    }
   }
 
   @override
