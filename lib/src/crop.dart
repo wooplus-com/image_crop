@@ -23,7 +23,7 @@ class Crop extends StatefulWidget {
   final bool showGrid;
   final bool enableAdjustCropWindow;
   final Rect Function(Rect area, Size size)? onCalculateDefaultArea;
-  final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPrint;
+  final Function(Canvas canvas, Paint paint, Rect boundaries)? onAfterPaint;
 
   const Crop({
     Key? key,
@@ -35,7 +35,7 @@ class Crop extends StatefulWidget {
     this.showGrid = true,
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
-    this.onAfterPrint,
+    this.onAfterPaint,
   }) : super(key: key);
 
   Crop.file(
@@ -49,7 +49,7 @@ class Crop extends StatefulWidget {
     this.showGrid = true,
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
-    this.onAfterPrint,
+    this.onAfterPaint,
   })  : image = FileImage(file, scale: scale),
         super(key: key);
 
@@ -65,7 +65,7 @@ class Crop extends StatefulWidget {
     this.showGrid = true,
     this.enableAdjustCropWindow = true,
     this.onCalculateDefaultArea,
-    this.onAfterPrint,
+    this.onAfterPaint,
   })  : image = AssetImage(assetName, bundle: bundle, package: package),
         super(key: key);
 
@@ -216,7 +216,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
                 scale: _scale,
                 active: _activeController.value,
                 showHandles: widget.enableAdjustCropWindow,
-                onAfterPrint: widget.onAfterPrint,
+                onAfterPrint: widget.onAfterPaint,
               ),
             ),
           ),

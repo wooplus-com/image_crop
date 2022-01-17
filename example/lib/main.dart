@@ -97,7 +97,7 @@ class _MyAppState extends State<MyApp> {
             showGrid: false,
             enableAdjustCropWindow: false,
             onCalculateDefaultArea: _onCalculateDefaultArea,
-            onAfterPrint: _onAfterPaint,
+            onAfterPaint: _onAfterPaint,
           ),
         ),
         Container(
