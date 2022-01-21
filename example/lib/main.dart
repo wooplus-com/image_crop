@@ -42,7 +42,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    decorator = AssetImage('assets/img_photo_person.png');
+    // decorator = AssetImage('assets/img_photo_person.png');
   }
 
   @override
@@ -131,12 +131,14 @@ class _MyAppState extends State<MyApp> {
   }
 
   Rect _onCalculateDefaultArea(Rect area, Size size) {
+    debugPrint("_onCalculateDefaultArea1 $area");
     var padding = EdgeInsets.all(15);
     var result = Rect.fromLTWH(
         area.left + padding.left / size.width,
         area.top + padding.top / size.height,
         area.width - (padding.left + padding.right) / size.width,
         area.height - (padding.top + padding.bottom) / size.height);
+    debugPrint("_onCalculateDefaultArea2 $result");
     return result;
   }
 

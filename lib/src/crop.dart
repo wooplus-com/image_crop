@@ -370,6 +370,9 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
           viewWidth,
           viewHeight,
         );
+
+        _scale = _minimumScale!;
+        _view = _getViewInBoundariesCenter(_scale);
       });
     });
 
@@ -456,6 +459,17 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
           ),
           _area.bottom * _view.height / scale - 1.0,
         ),
+      ) &
+      _view.size;
+
+  Rect _getViewInBoundariesCenter(double scale) =>
+      Offset(
+        ((_area.left * _view.width / scale) +
+                (_area.right * _view.width / scale - 1.0)) /
+            2,
+        ((_area.top * _view.height / scale) +
+                (_area.bottom * _view.height / scale - 1.0)) /
+            2,
       ) &
       _view.size;
 
