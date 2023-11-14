@@ -80,7 +80,7 @@ class Crop extends StatefulWidget {
       context.findAncestorStateOfType<CropState>();
 }
 
-class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
+class CropState extends State<Crop> with TickerProviderStateMixin {
   final _surfaceKey = GlobalKey();
 
   late final AnimationController _activeController;
@@ -341,7 +341,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
   }
 
   void _updateImage(ImageInfo imageInfo, bool synchronousCall) {
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       final boundaries = _boundaries;
       if (boundaries == null) {
         return;
@@ -376,7 +376,7 @@ class CropState extends State<Crop> with TickerProviderStateMixin, Drag {
       });
     });
 
-    WidgetsBinding.instance?.ensureVisualUpdate();
+    WidgetsBinding.instance.ensureVisualUpdate();
   }
 
   _CropHandleSide _hitCropHandle(Offset? localPoint) {
