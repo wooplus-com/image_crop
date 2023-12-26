@@ -2,7 +2,7 @@ part of image_crop;
 
 const _kCropGridColumnCount = 3;
 const _kCropGridRowCount = 3;
-const _kCropGridColor = Color.fromRGBO(0xd0, 0xd0, 0xd0, 0.9);
+const _kCropGridColor = Color.fromRGBO(0xd0, 0xd0, 0xd0, 0.5);
 const _kCropOverlayActiveOpacity = 0.3;
 const _kCropOverlayInactiveOpacity = 0.7;
 const _kCropHandleColor = Color.fromRGBO(0xd0, 0xd0, 0xd0, 1.0);
@@ -763,7 +763,7 @@ class _CropPainter extends CustomPainter {
       ..isAntiAlias = false
       ..color = _kCropGridColor.withOpacity(_kCropGridColor.opacity * active)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+      ..strokeWidth = 1.2;
 
     final path = Path()
       ..moveTo(boundaries.left, boundaries.top)
