@@ -24,11 +24,11 @@ class ImageCrop {
   static const _channel =
       const MethodChannel('plugins.lykhonis.com/image_crop');
 
-  static Future<bool> requestPermissions() => _channel
+  static FutureOr<bool> requestPermissions() => _channel
       .invokeMethod('requestPermissions')
       .then<bool>((result) => result);
 
-  static Future<ImageOptions> getImageOptions({
+  static FutureOr<ImageOptions> getImageOptions({
     required File file,
   }) async {
     final result =
@@ -40,7 +40,7 @@ class ImageCrop {
     );
   }
 
-  static Future<File> cropImage({
+  static FutureOr<File> cropImage({
     required File file,
     required Rect area,
     double? scale,
@@ -54,7 +54,7 @@ class ImageCrop {
         'scale': scale ?? 1.0,
       }).then<File>((result) => File(result));
 
-  static Future<File> sampleImage({
+  static FutureOr<File> sampleImage({
     required File file,
     int? preferredSize,
     int? preferredWidth,

@@ -4,8 +4,7 @@ version: 0.4.0
 homepage: https://github.com/VolodymyrLykhonis/image_crop
 
 environment:
-  sdk: ">=2.12.0 <3.0.0"
-  flutter: ">=1.12.13+hotfix.6"
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -23,3 +22,5 @@ flutter:
         pluginClass: ImageCropPlugin
       ios:
         pluginClass: ImageCropPlugin
+  assets:
+    - assets/image_photo_person.png
